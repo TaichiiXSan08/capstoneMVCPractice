@@ -10,12 +10,7 @@ package controller;
 import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.Scanner;
-import db.AccountHolder;
-import db.Claim;
-import db.DatabaseConnection;
-import db.Policy;
-import db.PolicyHolder;
-import db.Vehicle;
+import model.*;
 import view.Menus;
 
 public class InputService {
@@ -242,7 +237,7 @@ public class InputService {
 	 * respective object attribute, else prompts the user again.
 	 */
 	public String askAccountNumber(Connection con, AccountHolder accountHolder, Menus menu, Scanner sc,
-			Validation validate, DatabaseConnection dbCon) {
+			Validation validate, AccountHolderDAO accHolderDAO) {
 		String input;
 
 		do {
@@ -250,8 +245,9 @@ public class InputService {
 				menu.askAccountNumber();
 				input = sc.nextLine();
 			} while (validate.isInvalidAccountNumberInput(input)); // checks if input is a valid string.
-			accountHolder = dbCon.selectAccountHolder(con, accountHolder, input); // selects accountnumber record in
-																					// db.
+			accountHolder = accHolderDAO.selectAccountHolder(con, accountHolder, input); // selects accountnumber record
+																							// in
+			// db.
 		} while (accountHolder.getAccountNumber() == null);
 
 		return input;
@@ -262,7 +258,7 @@ public class InputService {
 	 * object attribute, else prompts the user again.
 	 */
 	public String askPolicyId(Connection con, Policy policy, Menus menu, Scanner sc, Validation validate,
-			DatabaseConnection dbCon) {
+			PolicyDAO policyDAO) {
 		String input;
 
 		do {
@@ -270,7 +266,7 @@ public class InputService {
 				menu.askPolicyNumber();
 				input = sc.nextLine();
 			} while (validate.isInvalidPolicyId(input));
-			policy = dbCon.selectClaimablePolicy(con, policy, input);
+			policy = policyDAO.selectClaimablePolicy(con, policy, input);
 		} while (policy.getPolicyId() == null);
 
 		return policy.getPolicyId();
@@ -281,7 +277,7 @@ public class InputService {
 	 * object attribute, else prompts the user again.
 	 */
 	public Claim askClaimId(Connection con, Claim claim, Menus menu, Scanner sc, Validation validate,
-			DatabaseConnection dbCon) {
+			ClaimDAO claimDAO) {
 		String input;
 
 		do {
@@ -289,7 +285,7 @@ public class InputService {
 				menu.askClaimId();
 				input = sc.nextLine();
 			} while (validate.isInvalidClaimId(input));
-			claim = dbCon.selectClaim(con, claim, input);
+			claim = claimDAO.selectClaim(con, claim, input);
 		} while (claim.getClaimId() == null);
 
 		return claim;

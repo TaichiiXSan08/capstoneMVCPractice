@@ -9,7 +9,7 @@ package controller;
 import java.sql.*;
 import java.util.*;
 
-import db.*;
+import model.*;
 import view.Menus;
 
 public class AutomobilePASService {
@@ -23,6 +23,11 @@ public class AutomobilePASService {
 	private Menus menu;
 	private Scanner sc;
 	private InputService inputService;
+	private AccountHolderDAO accHolderDAO;
+	private ClaimDAO claimDAO;
+	private PolicyDAO policyDAO;
+	private PolicyHolderDAO policyHolderDAO;
+	private VehicleDAO vehicleDAO;
 
 	public AutomobilePASService() {
 		initialize();
@@ -39,6 +44,11 @@ public class AutomobilePASService {
 		menu = new Menus();
 		sc = new Scanner(System.in);
 		inputService = new InputService();
+		accHolderDAO = new AccountHolderDAO();
+		claimDAO = new ClaimDAO();
+		policyDAO = new PolicyDAO();
+		policyHolderDAO = new PolicyHolderDAO();
+		vehicleDAO = new VehicleDAO();
 	}
 
 	// option 1 in main menu
@@ -50,9 +60,9 @@ public class AutomobilePASService {
 		accountHolder.setLastName(inputService.askLastName(accountHolder, menu, sc, validate));
 		accountHolder.setAddress(inputService.askAddress(accountHolder, menu, sc, validate));
 
-		dbCon.insertAccountHolderToDB(con, accountHolder);
+		accHolderDAO.insertAccountHolderToDB(con, accountHolder);
 
-		accountHolder = dbCon.selectNewAccountHolderID(con, accountHolder);
+		accountHolder = accHolderDAO.selectNewAccountHolderID(con, accountHolder);
 
 		accountHolder.displayAccountHolder();
 	}
@@ -68,9 +78,9 @@ public class AutomobilePASService {
 		boolean isTrue = true, isExistingPolicyHolder = false;
 		int vehicleCtr = 1;
 		
-		if(dbCon.selectNewAccountHolderID(con, accountHolder).getAccountNumber() != null)
+		if(accHolderDAO.selectNewAccountHolderID(con, accountHolder).getAccountNumber() != null)
 		{
-			accountHolder.setAccountNumber(inputService.askAccountNumber(con, accountHolder, menu, sc, validate, dbCon));
+			accountHolder.setAccountNumber(inputService.askAccountNumber(con, accountHolder, menu, sc, validate, accHolderDAO));
 			// get new policyholder if not same with account.
 			if (isSameAsAccountHolder(sc)) {
 				policyHolder.setFirstName(accountHolder.getFirstName());
@@ -84,7 +94,7 @@ public class AutomobilePASService {
 				policyHolder.setAddress(inputService.askAddress(policyHolder, menu, sc, validate));
 			}
 
-			if (dbCon.selectSpecificPolicyHolder(con, policyHolder).getDateOfBirth() != null)
+			if (policyHolderDAO.selectSpecificPolicyHolder(con, policyHolder).getDateOfBirth() != null)
 				isExistingPolicyHolder = true;
 			else {
 				// get policy/policyheader details from user
@@ -104,7 +114,7 @@ public class AutomobilePASService {
 
 				vehicleList.add(inputService.askVehicleDetailsFromUser(new Vehicle(), menu, sc, validate));
 				// validate if vehicle has existing policy
-				if (dbCon.isVehicleExists(con, vehicleList.get(vehicleList.size() - 1))) {
+				if (vehicleDAO.isVehicleExists(con, vehicleList.get(vehicleList.size() - 1))) {
 					System.out.println("Vehicle already have a policy.");
 					vehicleList.remove(vehicleList.size() - 1);
 					isTrue = isAddMoreVehicle();
@@ -115,7 +125,7 @@ public class AutomobilePASService {
 			} while (isTrue || vehicleList.isEmpty());
 
 			// calculate premium
-			policy = premiumCalculator.calculatePremium(policy, vehicleList, policyHolder, con, dbCon);
+			policy = premiumCalculator.calculatePremium(policy, vehicleList, policyHolder, con, vehicleDAO);
 
 			// display policy quote summary
 			displayPolicyQuote(vehicleList, vehicleCtr);
@@ -125,15 +135,15 @@ public class AutomobilePASService {
 
 				// insert policy/policyheader to db
 				if (!isExistingPolicyHolder)
-					dbCon.insertPolicyHolderToDB(con, accountHolder, policyHolder);
-				dbCon.insertPolicyToDB(con, accountHolder, policy);
+					policyHolderDAO.insertPolicyHolderToDB(con, accountHolder, policyHolder);
+				policyDAO.insertPolicyToDB(con, accountHolder, policy);
 
 				// update policy/holder objects
-				policy = dbCon.selectNewPolicy(con, policy);
-				policyHolder = dbCon.selectNewPolicyHolderId(con, policyHolder);
+				policy = policyDAO.selectNewPolicy(con, policy);
+				policyHolder = policyHolderDAO.selectNewPolicyHolderId(con, policyHolder);
 
 				// update policy's policypremium
-				policy = dbCon.updatePolicyPremium(con, policy.getPolicyPremium(), policy);
+				policy = policyDAO.updatePolicyPremium(con, policy.getPolicyPremium(), policy);
 
 				System.out.println("RECORD SAVED");
 				displayPolicyQuote(vehicleList, vehicleCtr);
@@ -155,10 +165,10 @@ public class AutomobilePASService {
 		 */
 		String input;
 		
-		if(dbCon.selectNewPolicy(con, policy).getPolicyId() != null)
+		if(policyDAO.selectNewPolicy(con, policy).getPolicyId() != null)
 		{
 			policy.reset();
-			policy.setPolicyId(inputService.askPolicyId(con, policy, menu, sc, validate, dbCon));
+			policy.setPolicyId(inputService.askPolicyId(con, policy, menu, sc, validate, policyDAO));
 			policy.displayPolicy();
 
 			do {
@@ -167,9 +177,9 @@ public class AutomobilePASService {
 			} while (validate.isInvalidYesNo(input));
 
 			if (input.equalsIgnoreCase("y")) {
-				dbCon.updatePolicyIsCancelled(con, policy);
+				policyDAO.updatePolicyIsCancelled(con, policy);
 				System.out.println("Policy has been cancelled.");
-				policy = dbCon.selectPolicy(con, policy, policy.getPolicyId());
+				policy = policyDAO.selectPolicy(con, policy, policy.getPolicyId());
 				policy.displayPolicy();
 			} else {
 				System.out.println("Displaying policy");
@@ -187,12 +197,12 @@ public class AutomobilePASService {
 		 * details insert into backend display the claims detail to user
 		 */
 		
-		if(dbCon.selectNewPolicy(con, policy).getPolicyId() != null)
+		if(policyDAO.selectNewPolicy(con, policy).getPolicyId() != null)
 		{
 			policy.reset();
 			claim.reset();
 	
-			policy.setPolicyId(inputService.askPolicyId(con, policy, menu, sc, validate, dbCon));
+			policy.setPolicyId(inputService.askPolicyId(con, policy, menu, sc, validate, policyDAO));
 			policy.displayPolicy();
 	
 			claim.setDateOfAccident(inputService.askDateOfAccident(claim, menu, sc, validate));
@@ -201,8 +211,8 @@ public class AutomobilePASService {
 			claim.setDescription2(inputService.askDescriptionOfDamageToVehicle(claim, menu, sc, validate));
 			claim.setEstimatedCostOfRepairs(inputService.askEstimatedCostOfRepairs(claim, menu, sc, validate));
 	
-			dbCon.insertClaims(con, claim, policy);
-			claim = dbCon.selectClaimId(con, claim);
+			claimDAO.insertClaims(con, claim, policy);
+			claim = claimDAO.selectClaimId(con, claim);
 			claim.displayClaim();
 		}
 		else
@@ -216,11 +226,11 @@ public class AutomobilePASService {
 		 */
 		accountHolder.reset();
 		
-		if(dbCon.selectNewAccountHolderID(con, accountHolder).getAccountNumber() != null)
+		if(accHolderDAO.selectNewAccountHolderID(con, accountHolder).getAccountNumber() != null)
 		{
 			accountHolder.setFirstName(inputService.askFirstName(accountHolder, menu, sc, validate));
 			accountHolder.setLastName(inputService.askLastName(accountHolder, menu, sc, validate));
-			accountHolder = dbCon.selectFirstLastName(con, accountHolder);
+			accountHolder = accHolderDAO.selectFirstLastName(con, accountHolder);
 			if (!(accountHolder.getAccountNumber() == null))
 				accountHolder.displayAccountHolder();
 		}
@@ -233,10 +243,10 @@ public class AutomobilePASService {
 		/*
 		 * Ask for a policy id display policy details
 		 */
-		if(dbCon.selectNewPolicy(con, policy).getPolicyId() != null)
+		if(policyDAO.selectNewPolicy(con, policy).getPolicyId() != null)
 		{
 			policy.reset();
-			policy.setAccountNumber(inputService.askPolicyId(con, policy, menu, sc, validate, dbCon));
+			policy.setAccountNumber(inputService.askPolicyId(con, policy, menu, sc, validate, policyDAO));
 			policy.displayPolicy();
 		}
 		else
@@ -251,7 +261,7 @@ public class AutomobilePASService {
 		if(dbCon.selectNewClaim(con, claim).getClaimId() != null)
 		{
 			claim.reset();
-			claim = inputService.askClaimId(con, claim, menu, sc, validate, dbCon);
+			claim = inputService.askClaimId(con, claim, menu, sc, validate, claimDAO);
 			claim.displayClaim();
 		}
 		else

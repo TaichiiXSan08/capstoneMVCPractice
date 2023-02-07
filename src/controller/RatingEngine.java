@@ -10,13 +10,13 @@ import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-import db.*;
+import model.*;
 
 public class RatingEngine {
 
 	// policy premium computation based on capstone requirement
 	public Policy calculatePremium(Policy policy, ArrayList<Vehicle> vehicleList, PolicyHolder policyHolder,
-			Connection con, DatabaseConnection dbCon) {
+			Connection con, VehicleDAO vehicleDAO) {
 		/*
 		 * P (premium) = (vp x vpf) + ((vp/100)/dlx) P = calculated premium vp = vehicle
 		 * purchase price vpf = vehicle price factor dlx = num of years since driver
@@ -26,7 +26,7 @@ public class RatingEngine {
 
 		for (Vehicle tempVehicle : vehicleList) {
 			purchasePrice = tempVehicle.getPurchasePrice();
-			priceFactor = dbCon.selectPriceFactor(tempVehicle, con);
+			priceFactor = vehicleDAO.selectPriceFactor(tempVehicle, con);
 			dlx = (LocalDate.now().getYear()) - (policyHolder.getLicenseIssued().getYear());
 			
 			if (dlx == 0)
@@ -39,7 +39,7 @@ public class RatingEngine {
 
 			tempVehicle.setPremiumCharged(premium);
 
-			dbCon.insertVehicleToDB(con, tempVehicle, policyHolder, policy);
+			vehicleDAO.insertVehicleToDB(con, tempVehicle, policyHolder, policy);
 
 			premiumTotal += premium;
 		}

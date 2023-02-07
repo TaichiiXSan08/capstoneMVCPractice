@@ -137,7 +137,7 @@ public class Validation {
 			LocalDate.parse(input);
 			return false;
 		} catch (DateTimeParseException e) {
-			// e.printStackTrace();
+			e.printStackTrace();
 			System.out.println("Invalid date or wrong format should be:yyyy-mm-dd");
 			return true;
 		}

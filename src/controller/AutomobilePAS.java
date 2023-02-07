@@ -8,7 +8,8 @@ package controller;
 
 import java.sql.Connection;
 import java.util.Scanner;
-import db.*;
+
+import model.*;
 import view.Menus;
 
 public class AutomobilePAS {
