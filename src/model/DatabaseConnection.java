@@ -9,8 +9,7 @@
 package model;
 
 import java.sql.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
+
 
 public class DatabaseConnection {
 	private final String URL = "jdbc:mysql://localhost:3306/";
@@ -41,6 +40,7 @@ public class DatabaseConnection {
 		} catch (SQLException e) {
 			Connection con = null;
 			System.out.println("Connection to the DB failed\n" + e);
+			System.exit(0);
 			return con;
 		}
 	}
@@ -50,8 +50,12 @@ public class DatabaseConnection {
 		try {
 			Statement stmt = con.createStatement();
 			stmt.execute("CREATE DATABASE IF NOT EXISTS " + DBNAME);
+			con = connectDB();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("Database was not created");
+			System.exit(0);
+			
 		}
 	}
 
@@ -149,26 +153,6 @@ public class DatabaseConnection {
 		con.close();
 	}
 
-	// insert account and policy details to db
-	public void insertAccountPolicyDetailToDB(Connection con, AccountHolder accountHolder, PolicyHolder policyHolder,
-			Policy policy) {
-		PreparedStatement stmt;
-
-		try {
-			stmt = con.prepareStatement(
-					"INSERT INTO accountpolicydetail (policyid,policyholderid,accountnumber) " + "VALUES(?,?,?)");
-
-			stmt.setString(1, policy.getPolicyId());
-			stmt.setInt(2, policyHolder.getPolicyHolderId());
-			stmt.setString(3, accountHolder.getAccountNumber());
-
-			stmt.executeUpdate();
-
-		} catch (SQLException e) {
-			// e.printStackTrace();
-		}
-	}
-
 	// inserts account and policy details to db
 	public void insertAccountPolicyDetail(Connection con, AccountHolder accountHolder, Policy policy,
 			PolicyHolder policyHolder) {
@@ -185,27 +169,6 @@ public class DatabaseConnection {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			// e.printStackTrace();
-		}
-	}
-
-	public Claim selectNewClaim(Connection con, Claim claim) {
-		PreparedStatement stmt;
-		ResultSet rs;
-		try {
-			stmt = con.prepareStatement("SELECT * FROM claim ORDER BY 1 DESC LIMIT 1;");
-			rs = stmt.executeQuery();
-			while (rs.next()) {
-				claim.setClaimId(rs.getString(1));
-				claim.setDateOfAccident(LocalDate.parse(rs.getString(2)));
-				claim.setAddress(rs.getString(3));
-				claim.setDescription(rs.getString(4));
-				claim.setDescription2(rs.getString(5));
-				claim.setEstimatedCostOfRepairs(rs.getDouble(6));
-				claim.setPolicyId(rs.getString(7));
-			}
-			return claim;
-		} catch (Exception e) {
-			return claim;
 		}
 	}
 

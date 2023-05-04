@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class PolicyDAO extends DatabaseConnection {
 
@@ -201,4 +202,40 @@ public class PolicyDAO extends DatabaseConnection {
 
 	}
 
+
+	public ArrayList<Policy> selectPolicyViaAccountNumber(Connection con, AccountHolder accountHolder, ArrayList<Policy> policyList) {
+		try {
+			PreparedStatement stmt;
+			ResultSet rs;
+			
+			stmt = con.prepareStatement("SELECT lpad(policyid,6,0), lpad(accountnumber,4,0),effectivedate,\r\n"
+					+ "expirationdate, policyholder, policypremium, status FROM policy\r\n" + "WHERE accountnumber =?;");
+			stmt.setString(1, accountHolder.getAccountNumber());
+			rs = stmt.executeQuery();
+			
+			if (rs.next()) {
+				do {
+					Policy policy = new Policy();
+					
+					policy.setPolicyId(rs.getString(1));
+					policy.setAccountNumber(rs.getString(2));
+					policy.setEffectiveDate(LocalDate.parse(rs.getString(3)));
+					policy.setExpirationDate(LocalDate.parse(rs.getString(4)));
+					policy.setPolicyHolder(rs.getString(5));
+					policy.setPolicyPremium(rs.getDouble(6));
+					policy.setStatus(rs.getString(7));
+					
+					policyList.add(policy);
+				} while (rs.next());
+			} else {
+				System.out.println("There is no policy");
+			}
+
+			return policyList;
+		} catch (Exception e) {
+			// TODO: handle exception
+			
+		}
+		return policyList;
+	}
 }

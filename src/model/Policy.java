@@ -71,6 +71,16 @@ public class Policy extends AccountHolder {
 						+ "\nEffectiveDate: %s" + "\nExpirationDate: %s" + "\nPolicyPremium: $%.2f" + "\nStatus: %s",
 				policyId, getAccountNumber(), policyHolder, effectiveDate, expirationDate, policyPremium, status);
 	}
+	
+	public void displayPolicyTabledColumns()
+	{
+		System.out.println("\n[POLICY INFO]\nPolicy ID               AccountNumber               PolicyHolder               EffectiveDate               ExpirationDate               PolicyPremium               Status");
+	}
+	
+	public void displayPolicyTabledContents() {
+		System.out.printf("%-23s %-27s %-26s %-27s %-28s $%-26.2f %-25s\n",
+				policyId, getAccountNumber(), policyHolder, effectiveDate, expirationDate, policyPremium, status);
+	}
 
 	public void reset() {
 		effectiveDate = null;

@@ -25,8 +25,11 @@ public class AutomobilePAS {
 		String input;
 		boolean isTrue = true;
 
+		/*
+		 * Readies the database if no db is created upon startup. normally this is not
+		 * needed since a database is established
+		 */
 		dbCon.createDatabase(con);
-		con = dbCon.connectDB();
 
 		// create db tables when not existing.
 		dbCon.createTables(con);
@@ -71,5 +74,6 @@ public class AutomobilePAS {
 			}
 		}
 		sc.close();
+
 	}
 }

@@ -225,6 +225,8 @@ public class AutomobilePASService {
 		 * Ask for an account holder id display account holder details
 		 */
 		accountHolder.reset();
+		ArrayList<Policy> policyList = new ArrayList<Policy>();
+		
 		
 		if(accHolderDAO.selectNewAccountHolderID(con, accountHolder).getAccountNumber() != null)
 		{
@@ -232,7 +234,17 @@ public class AutomobilePASService {
 			accountHolder.setLastName(inputService.askLastName(accountHolder, menu, sc, validate));
 			accountHolder = accHolderDAO.selectFirstLastName(con, accountHolder);
 			if (!(accountHolder.getAccountNumber() == null))
+			{
 				accountHolder.displayAccountHolder();
+				policyList = policyDAO.selectPolicyViaAccountNumber(con, accountHolder,policyList);
+				policy.displayPolicyTabledColumns();
+				for (Policy policy : policyList) {
+					policy.displayPolicyTabledContents();
+				}
+				
+			}
+				
+			
 		}
 		else
 			System.out.println("No Account has been created yet.\n Going back to Main Menu.");
@@ -258,7 +270,7 @@ public class AutomobilePASService {
 		/*
 		 * Ask for a claimid display claim details
 		 */
-		if(dbCon.selectNewClaim(con, claim).getClaimId() != null)
+		if(claimDAO.selectNewClaim(con, claim).getClaimId() != null)
 		{
 			claim.reset();
 			claim = inputService.askClaimId(con, claim, menu, sc, validate, claimDAO);
@@ -319,4 +331,6 @@ public class AutomobilePASService {
 			tempVehicle.displayVehicleNoId();
 		}
 	}
+
+	
 }

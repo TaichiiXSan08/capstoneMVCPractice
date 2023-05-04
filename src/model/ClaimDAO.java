@@ -94,4 +94,26 @@ public class ClaimDAO extends DatabaseConnection {
 		return claim;
 	}
 
+	
+	public Claim selectNewClaim(Connection con, Claim claim) {
+		PreparedStatement stmt;
+		ResultSet rs;
+		try {
+			stmt = con.prepareStatement("SELECT * FROM claim ORDER BY 1 DESC LIMIT 1;");
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				claim.setClaimId(rs.getString(1));
+				claim.setDateOfAccident(LocalDate.parse(rs.getString(2)));
+				claim.setAddress(rs.getString(3));
+				claim.setDescription(rs.getString(4));
+				claim.setDescription2(rs.getString(5));
+				claim.setEstimatedCostOfRepairs(rs.getDouble(6));
+				claim.setPolicyId(rs.getString(7));
+			}
+			return claim;
+		} catch (Exception e) {
+			return claim;
+		}
+}
+
 }
